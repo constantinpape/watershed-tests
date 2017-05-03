@@ -28,6 +28,8 @@ def ws_distance_transform(
             preserve_membrane,
             out_debug_dict)
 
+
+# NOTE group seeds is not supported, because this does not lift the gil
 def ws_distance_transform_2d_stacked(
         pmap,
         threshold,
@@ -35,7 +37,6 @@ def ws_distance_transform_2d_stacked(
         sigma_weights     = 0.,
         min_membrane_size = 0,
         min_segment_size  = 0,
-        group_seeds       = False,
         preserve_membrane = True,
         n_threads         = 1
         ):
