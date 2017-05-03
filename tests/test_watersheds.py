@@ -5,6 +5,10 @@ import numpy as np
 from volumina_viewer import volumina_n_layer
 from wsdt import grayWsDtSegmentation, signed_distance_transform, wsDtSegmentation
 
+# download test data from
+#https://drive.google.com/open?id=0B4_sYa95eLJ1ek8yMWozTzhBbGM
+
+# TODO TODO TODO
 
 def test_all_vigra_fu(data):
     lambd = 1e-2
