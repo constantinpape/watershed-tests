@@ -10,7 +10,7 @@ def signed_anisotropic_dt(
         preserve_membrane_pmaps
         ):
 
-    binary_membranes = (pmap >= pmin).view('uint8')
+    binary_membranes = (pmap >= threshold).astype('uint32')
     distance_to_membrane = vigra.filters.distanceTransform(
             binary_membranes,
             pixel_pitch = [anisotropy, 1., 1.])
@@ -39,13 +39,13 @@ def signed_anisotropic_dt(
 
 
 def anisotropic_seeds(
-        distances_to_membrane,
+        distance_to_membrane,
         anisotropy,
         sigma_seeds,
         group_seeds
         ):
 
-    seeds = np.zeros_like(distances_to_membrane, dtype = 'uint32')
+    seeds = np.zeros_like(distance_to_membrane, dtype = 'uint32')
     seed_map = vigra.filters.gaussianSmoothing(distance_to_membrane, (1. / anisotropy, 1., 1.) )
 
     for z in xrange(distance_to_membrane.shape[0]):
@@ -54,7 +54,7 @@ def anisotropic_seeds(
         if group_seeds:
             seeds_z = group_seeds_by_distance( seeds_z, distance_to_membrane[z])
         else:
-            seeds_z = vigra.analysis.labelMultiArrayWithBackground(seeds_z.view('uint8'))
+            seeds_z = vigra.analysis.labelMultiArrayWithBackground(seeds_z)
 
         seeds[z] = seeds_z
 
@@ -81,6 +81,7 @@ def ws_anisotropic_distance_transform(
     distance_to_membrane = signed_anisotropic_dt(pmap, threshold, anisotropy, preserve_membrane_pmaps)
     seeds = anisotropic_seeds(distance_to_membrane, anisotropy, sigma_seeds, group_seeds)
 
+
     if grow_on_pmap:
         hmap = pmap
     else:
@@ -93,9 +94,10 @@ def ws_anisotropic_distance_transform(
 
     offset = 0
     for z in xrange(shape[0]):
-        max_z = iterative_inplace_watershed(hmap[z], seed_map[z], min_segment_size, None)
-        seed_map[z] += offset
+        max_z = iterative_inplace_watershed(hmap[z], seeds[z], min_segment_size, None)
+        seeds[z] -= 1
+        seeds[z] += offset
         # TODO make sure that this does not cause a label overlap by one between adjacent slices
         offset += max_z
 
-    return seed_map
+    return seeds, offset

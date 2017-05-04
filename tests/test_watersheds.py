@@ -3,56 +3,90 @@ import vigra
 import numpy as np
 
 from volumina_viewer import volumina_n_layer
-from wsdt import grayWsDtSegmentation, signed_distance_transform, wsDtSegmentation
+
+import sys
+sys.path.append('..')
+from watersheds import *
 
 # download test data from
 #https://drive.google.com/open?id=0B4_sYa95eLJ1ek8yMWozTzhBbGM
 
-# TODO TODO TODO
-
-def test_all_vigra_fu(data):
-    lambd = 1e-2
-    threshold = .2
-
-    dt = signed_distance_transform(data, threshold, 0, False, None)
-    opening = vigra.filters.multiGrayscaleOpening(data, lambd)
-    closing = vigra.filters.multiGrayscaleClosing(data, lambd)
-    dilation = vigra.filters.multiGrayscaleDilation(data, lambd)
-    erosion = vigra.filters.multiGrayscaleErosion(data, lambd)
-    inv_dilation = 1. - vigra.filters.multiGrayscaleDilation(data, lambd)
-
-    imlyb_dt = vigra.readHDF5('./tmp/imlyb_dt.h5', 'data')
-
-    volumina_n_layer([data, dt, opening, closing, dilation, erosion, inv_dilation, imlyb_dt],
-            ['data', 'dt', 'opening', 'closing', 'dilation', 'erosion', 'inv_dilation', 'imlyb'])
+def check_consecutive(segmentation):
+    prev_max = -1
+    for z in xrange(segmentation.shape[0]):
+        min_z, max_z = segmentation[z].min(), segmentation[z].max()
+        assert prev_max + 1 == min_z, "%i, %i" % (prev_max + 1, min_z)
+        prev_max = max_z
+    print "Passed"
 
 
-def test_vi_graydt(data):
-    lambd = 0.015
-    threshold = .2
+# TODO install mahotas and run funkey
 
-    dt = signed_distance_transform(data, threshold, 0, False, None)
-    dilation = vigra.filters.multiGrayscaleDilation(data, lambd)
-    erosion = vigra.filters.multiGrayscaleErosion(data, lambd)
-    dilation_inv = dilation.max() - dilation
+def test_aniso(view = False):
+    pmap = vigra.readHDF5('./test_data/anisotropic/pmap.h5', 'data')
 
-    volumina_n_layer([data, dt, dilation, erosion, dilation_inv],
-            ['data', 'dt', 'dilation', 'erosion', 'dilation_inv'])
+    ws_aniso_dt, n_labels_aniso = ws_anisotropic_distance_transform(pmap, 0.4, 10., 2.)
+    check_consecutive(ws_aniso_dt)
+    assert n_labels_aniso == ws_aniso_dt.max() + 1
+    print "Anisotropic distance transform watershed done"
 
-def simple_test(data):
-    lamda = 1e-2
-    threshold = .2
+    res_dt   = []
+    res_gray = []
+    for n_threads in (1,4):
+        ws_dt, n_labels_dt = ws_distance_transform_2d_stacked(
+                pmap,
+                0.4,
+                2.,
+                n_threads = n_threads)
+        check_consecutive(ws_dt)
+        assert n_labels_dt == ws_dt.max() + 1, "%i, %i" % (n_labels_dt, ws_dt.max() + 1)
+        res_dt.append(n_labels_dt)
+        print "Distance transform watershed done"
 
-    wsdt, _ = wsDtSegmentation(data, threshold, 0, 0, 1.6, 1., False)
-    gray_wsdt, _ = grayWsDtSegmentation(data, lamda, 0, 1.6)
+        ws_gray, n_labels_gray = ws_grayscale_distance_transform_2d_stacked(
+                pmap,
+                0.1,
+                2.,
+                n_threads = n_threads)
+        check_consecutive(ws_gray)
+        assert n_labels_gray == ws_gray.max() + 1
+        res_gray.append(n_labels_gray)
+        print "Grayscale distance transform watershed done"
 
-    volumina_n_layer([data, wsdt, gray_wsdt], ["data", "wsdt", "gray-wsdt"])
+    assert res_dt[0] == res_dt[1]
+    assert res_gray[0] == res_gray[1]
+
+    if view:
+        raw = vigra.readHDF5('./test_data/anisotropic/raw.h5', 'data')
+        volumina_n_layer(
+                [raw, pmap, ws_aniso_dt, ws_dt, ws_gray],
+                ['raw', 'pmap', 'ws_aniso_dt', 'ws_dt', 'ws_gray']
+                )
+
+
+def test_iso(view = False):
+    pmap = vigra.readHDF5('./test_data/isotropic/pmap.h5', 'data')
+
+    ws_dt, n_labels_dt = ws_distance_transform(pmap, 0.4, 2.)
+    assert ws_dt.min() == 0
+    assert ws_dt.max() + 1 == len(np.unique(ws_dt))
+    assert ws_dt.max() + 1 == n_labels_dt
+    print "Wsdt done"
+
+    ws_gray, n_labels_gray = ws_grayscale_distance_transform(pmap, 0.1, 2.)
+    assert ws_gray.min() == 0
+    assert ws_gray.max() + 1 == len(np.unique(ws_gray))
+    assert ws_gray.max() + 1 == n_labels_gray
+    print "Ws gray done"
+
+    if view:
+        raw = vigra.readHDF5('./test_data/isotropic/raw.h5', 'data')
+        volumina_n_layer(
+                [raw, pmap, ws_dt, ws_gray],
+                ['raw', 'pmap', 'ws_dt', 'ws_gray']
+                )
 
 
 if __name__ == '__main__':
-    pmap_p = '/home/consti/Work/data_neuro/CREMI/wsdt_test/cremi_sampleC_probs_cantorV1.h5'
-    with h5py.File(pmap_p) as f:
-        x = f['data'][1]
-        print x.shape
-
-    test_all_vigra_fu(x)
+    #test_iso()
+    test_aniso()
