@@ -1,0 +1,26 @@
+package:
+    name: watersheds
+
+source:
+    path: ..
+
+build:
+    number: 1
+
+requirements:
+    build:
+        - python 2.7*
+    run:
+        - python 2.7*
+        - vigra
+        - wsdt 0.2.post12
+        - futures
+        - mahotas
+
+test:
+    imports:
+        - watersheds
+
+about:
+    license: BSD
+    summary: Watersheds for neuro segmentation
