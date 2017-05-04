@@ -2,7 +2,8 @@ package:
     name: watersheds
 
 source:
-    path: ..
+    git_url: https://github.com/constantinpape/watersheds.git
+    git_tag: HEAD
 
 build:
     number: 1
