@@ -88,5 +88,5 @@ def test_iso(view = False):
 
 
 if __name__ == '__main__':
-    #test_iso()
+    test_iso()
     test_aniso()

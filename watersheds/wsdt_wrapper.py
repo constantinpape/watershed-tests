@@ -14,9 +14,20 @@ def ws_distance_transform(
         min_segment_size  = 0,
         group_seeds       = False,
         preserve_membrane = True,
+        grow_on_pmap      = True,
         out_debug_dict    = None
         ):
     """
+    Distance transform watershed on 2d or 3d probabiity map.
+
+    @params:
+    pmap: probability map, 2d or 3d numpy.ndarray of type float32.
+    threshold: threshold for pixels that are considered in distance transform.
+    sigma_seeds: smoothing factor for distance transform used for finding seeds.
+    sigma_weights: smoothing factor for distance transform used as heiht map for the watershed (default 0.).
+    min_membrane_size: Size filter for connected membrane components after thresholding (default 0 -> no size filtering).
+    min_segment_size: Size filter for resulting segments (default 0 -> no size filtering).
+
     """
     fragments, max_label = wsDtSegmentation(
             pmap,
@@ -27,6 +38,7 @@ def ws_distance_transform(
             sigma_weights,
             group_seeds,
             preserve_membrane,
+            grow_on_pmap,
             out_debug_dict)
     return fragments - 1, max_label
 
@@ -40,6 +52,7 @@ def ws_distance_transform_2d_stacked(
         min_membrane_size = 0,
         min_segment_size  = 0,
         preserve_membrane = True,
+        grow_on_pmap      = True,
         n_threads         = 1
         ):
     """
@@ -54,6 +67,7 @@ def ws_distance_transform_2d_stacked(
             min_segment_size = min_segment_size,
             group_seeds   = False,
             preserve_membrane = preserve_membrane,
+            grow_on_pmap   = grow_on_pmap,
             out_debug_dict = None
         )
 
