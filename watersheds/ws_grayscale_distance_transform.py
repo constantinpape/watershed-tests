@@ -15,6 +15,21 @@ def ws_grayscale_distance_transform(
         group_seeds = False,
         grow_on_pmap = True
         ):
+    """
+    Watershed on grayscale distance transform on 2d or 3d probabiity map.
+
+    @params:
+    pmap: probability map, 2d or 3d numpy.ndarray of type float32.
+    sigma_grayscale_dt: sigma value for the grayscale dt.
+    sigma_seeds: smoothing factor for distance transform used for finding seeds.
+    sigma_weights: smoothing factor for heiht map used for the watershed (default 0.).
+    min_segment_size: size filter for resulting segments (default 0 -> no size filtering).
+    group_seeds: use heuristics to group adjacent seeds (default: False).
+    grow_on_pmap: grow on the probability map instead of distance transform (default: True).
+    @returns:
+    fragments: numpy.ndarray of type uint32
+    n_labels:  number of labels
+    """
 
     # apply the grayscale distance transform
     # TODO smooth the pmap before ?!
@@ -54,6 +69,19 @@ def ws_grayscale_distance_transform_2d_stacked(
         n_threads         = 1
         ):
     """
+    Apply 2d grayscale distance transform watershed stacked on 3d input parallel over the z slices.
+
+    @params:
+    pmap: probability map, 2d or 3d numpy.ndarray of type float32.
+    sigma_grayscale_dt: sigma value for the grayscale dt.
+    sigma_seeds: smoothing factor for distance transform used for finding seeds.
+    sigma_weights: smoothing factor for heiht map used for the watershed (default 0.).
+    min_segment_size: size filter for resulting segments (default 0 -> no size filtering).
+    grow_on_pmap: grow on the probability map instead of distance transform (default: True).
+    n_threads: number of threads (default: 1)
+    @returns:
+    fragments: numpy.ndarray of type uint32
+    n_labels:  number of labels
     """
     fragments = np.zeros_like(pmap, dtype = 'uint32')
     ws_function = partial(ws_grayscale_distance_transform,

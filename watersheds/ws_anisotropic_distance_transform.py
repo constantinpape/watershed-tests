@@ -72,6 +72,23 @@ def ws_anisotropic_distance_transform(
         grow_on_pmap            = True,
         group_seeds             = False
         ):
+    """
+    Watershed on anisotropic distance transform on 3d probabiity map.
+
+    @params:
+    pmap: probability map, 3d numpy.ndarray of type float32.
+    threshold: threshold for pixels that are considered in distance transform.
+    anisotropy: anisotropy factor along the z axis.
+    sigma_seeds: smoothing factor for distance transform used for finding seeds.
+    sigma_weights: smoothing factor for heiht map used for the watershed (default 0.).
+    min_segment_size: size filter for resulting segments (default 0 -> no size filtering).
+    preserve_membrane: preserve membrane seeds (default: False).
+    grow_on_pmap: grow on the probability map instead of distance transform (default: True).
+    group_seeds: use heuristics to group adjacent seeds (default: False).
+    @returns:
+    fragments: numpy.ndarray of type uint32
+    n_labels:  number of labels
+    """
 
     # make sure we are in 3d and that first axis is z
     assert pmap.ndim == 3
