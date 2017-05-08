@@ -1,5 +1,6 @@
 package:
     name: watersheds
+    version: 0.1
 
 source:
     git_url: https://github.com/constantinpape/watersheds.git
