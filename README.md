@@ -8,3 +8,9 @@ Implemented:
 * Watershed on anisotropic distance transform (ws_anisotropic_distance_transform)
 
 ## Installation
+
+Install via conda (needs ilastik and conda-forge as additional channels):
+
+```
+$ conda install -c cpape watersheds
+```
